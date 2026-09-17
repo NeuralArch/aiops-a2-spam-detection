@@ -1,0 +1,27 @@
+# ---- Builder stage ----
+FROM python:3.11 AS builder
+
+WORKDIR /build
+
+COPY app/requirements.txt .
+RUN pip install --user -r requirements.txt
+
+COPY app/ .
+RUN python3 train.py
+
+# ---- Final stage ----
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy only the installed Python packages from builder
+COPY --from=builder /root/.local /root/.local
+# Copy application code and the trained model
+COPY --from=builder /build/main.py .
+COPY --from=builder /build/model.joblib .
+
+ENV PATH=/root/.local/bin:$PATH
+
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
