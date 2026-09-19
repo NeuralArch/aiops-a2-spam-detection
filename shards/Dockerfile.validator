@@ -1,0 +1,8 @@
+FROM python:3.11-slim
+
+WORKDIR /data
+
+COPY shard_*.csv /data/
+COPY validate_shard.py /data/validate_shard.py
+
+CMD ["python3", "/data/validate_shard.py"]
